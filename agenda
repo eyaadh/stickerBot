@@ -1,0 +1,14 @@
+Into for this project:
+Soo.... hello, its being a while. its been hectic days, anyway lately I came across a project where the client wanted
+to create a sticker bot, where he sends a text message to the bot and it returns the input as a sticker... well thats exactly
+what we are going to do in today's video... lets talk less and start with it...
+
+Agenda?
+1. create an image from the text received:
+    - depending on the length of the text message, wrap and divide into lines [x]
+2. add the senders profile picture [x]
+3. send the sticker what else? [x]
+
+well there its, I will post the git repo link on the description, u can make it better, such as adding the chat bubble
+as telegram has and truly make it look like a telegram thing... anyway enjoy!!! thats all for today... have a nice day
+and see you when once again when I see u :-)

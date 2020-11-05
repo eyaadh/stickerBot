@@ -1,0 +1,8 @@
+/venv/
+.idea/
+.env
+*.ini
+*.cfg
+*.session
+*.json
+*/__pycache__/
