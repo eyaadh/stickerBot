@@ -1,6 +1,7 @@
 # StickerBot:
 You send it a text, it will return you the content as a telegram sticker. 
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cc114e7c03c348eba634d2a4d844102e)](https://app.codacy.com/gh/eyaadh/stickerBot?utm_source=github.com&utm_medium=referral&utm_content=eyaadh/stickerBot&utm_campaign=Badge_Grade)
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 ## Cloning and Run:
