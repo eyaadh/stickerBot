@@ -15,15 +15,29 @@ logging.basicConfig(
 
 logging.getLogger(__name__)
 
-app_config = configparser.ConfigParser()
-app_config.read("config.ini")
-bot_api_key = app_config.get("bot-configuration", "api_key")
+is_env = bool(os.environ.get("ENV", None))
+if is_env:
+    tg_app_id = int(os.environ.get("TG_APP_ID"))
+    tg_api_key = os.environ.get("TG_API_HASH")
+    bot_api_key = os.environ.get("TG_BOT_TOKEN")
 
-some_sticker_bot = Client(
-    session_name="some_sticker_bot",
-    bot_token=bot_api_key,
-    workers=200
-)
+    some_sticker_bot = Client(
+        api_id=tg_app_id,
+        api_hash=tg_api_key,
+        session_name=":memory:",
+        bot_token=bot_api_key,
+        workers=200
+    )
+else:
+    app_config = configparser.ConfigParser()
+    app_config.read("config.ini")
+    bot_api_key = app_config.get("bot-configuration", "api_key")
+
+    some_sticker_bot = Client(
+        session_name="some_sticker_bot",
+        bot_token=bot_api_key,
+        workers=200
+    )
 
 
 async def get_y_and_heights(text_wrapped, dimensions, margin, font):
