@@ -41,7 +41,7 @@ else:
 
 
 async def get_y_and_heights(text_wrapped, dimensions, margin, font):
-    ascent, descent = font.getmetrics()
+    _, descent = font.getmetrics()
     line_heights = [font.getmask(text_line).getbbox()[3] + descent + margin for text_line in text_wrapped]
     line_heights[-1] -= margin
     height_text = sum(line_heights)
@@ -84,7 +84,7 @@ async def create_sticker_handler(c: Client, m: Message):
     for i, line in enumerate(text_lines):
         x = 100
         draw.text((x, y), line, (0, 0, 0), font=font)
-        draw.text((x, y), line, (0, 0, 0), font=font)
+        # draw.text((x, y), line, (0, 0, 0), font=font)
         y += line_heights[i]
 
     sticker_file = f"{secrets.token_hex(2)}.webp"
