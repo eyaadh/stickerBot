@@ -81,6 +81,8 @@ async def help_handler(c: Client, m: Message):
 
 @some_sticker_bot.on_message(filters.text & (~filters.command("start") | ~filters.command("help")))
 async def create_sticker_handler(c: Client, m: Message):
+    s = await m.reply_text("...")
+
     font = ImageFont.truetype("TitilliumWeb-Regular.ttf", 34)
 
     img = Image.new("RGBA", (512, 512), (255, 255, 255, 0))
@@ -123,6 +125,8 @@ async def create_sticker_handler(c: Client, m: Message):
             os.remove(photo)
     except Exception as e:
         logging.error(e)
+
+    await s.delete()
 
 
 async def main():
