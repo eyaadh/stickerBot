@@ -58,7 +58,28 @@ async def crop_to_circle(im):
     im.putalpha(mask)
 
 
-@some_sticker_bot.on_message(filters.text)
+@some_sticker_bot.on_message(filters.command("start"))
+async def start_handler(c: Client, m: Message):
+    await m.reply_text(
+        f"Hi, I just create telegram sticker from the text messages you send me. \nMy creator @eyaadh did a YouTube "
+        f"[video](https://youtu.be/dVrA9hit4ks) on how he created me. The link for my source is on the video "
+        f"description, you can fork the project and make a better version of me.",
+        disable_web_page_preview=True
+    )
+
+
+@some_sticker_bot.on_message(filters.command("help"))
+async def help_handler(c: Client, m: Message):
+    await m.reply_text(
+        f"Hi, I do not have much to say on help - I just create telegram stickers from the text messages you send me. "
+        f"\nMy creator @eyaadh did a YouTube "
+        f"[video](https://youtu.be/dVrA9hit4ks) on how he created me. The link for my source is on the video "
+        f"description, you can fork the project and make a better version of me.",
+        disable_web_page_preview=True
+    )
+
+
+@some_sticker_bot.on_message(filters.text & (~filters.command("start") | ~filters.command("help")))
 async def create_sticker_handler(c: Client, m: Message):
     font = ImageFont.truetype("TitilliumWeb-Regular.ttf", 34)
 
@@ -84,7 +105,6 @@ async def create_sticker_handler(c: Client, m: Message):
     for i, line in enumerate(text_lines):
         x = 100
         draw.text((x, y), line, (0, 0, 0), font=font)
-        # draw.text((x, y), line, (0, 0, 0), font=font)
         y += line_heights[i]
 
     sticker_file = f"{secrets.token_hex(2)}.webp"
