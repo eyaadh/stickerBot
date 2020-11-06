@@ -58,6 +58,64 @@ async def crop_to_circle(im):
     im.putalpha(mask)
 
 
+async def rounded_rectangle(rectangle, xy, corner_radius, fill=None, outline=None):
+    upper_left_point = xy[0]
+    bottom_right_point = xy[1]
+
+    rectangle.pieslice(
+        [upper_left_point, (upper_left_point[0] + corner_radius * 2, upper_left_point[1] + corner_radius * 2)],
+        180,
+        270,
+        fill=fill,
+        outline=outline
+    )
+    rectangle.pieslice(
+        [(bottom_right_point[0] - corner_radius * 2, bottom_right_point[1] - corner_radius * 2), bottom_right_point],
+        0,
+        90,
+        fill=fill,
+        outline=outline
+    )
+    rectangle.pieslice([(upper_left_point[0], bottom_right_point[1] - corner_radius * 2),
+                        (upper_left_point[0] + corner_radius * 2, bottom_right_point[1])],
+                       90,
+                       180,
+                       fill=fill,
+                       outline=outline
+                       )
+    rectangle.pieslice([(bottom_right_point[0] - corner_radius * 2, upper_left_point[1]),
+                        (bottom_right_point[0], upper_left_point[1] + corner_radius * 2)],
+                       270,
+                       360,
+                       fill=fill,
+                       outline=outline
+                       )
+    rectangle.rectangle(
+        [
+            (upper_left_point[0], upper_left_point[1] + corner_radius),
+            (bottom_right_point[0], bottom_right_point[1] - corner_radius)
+        ],
+        fill=fill,
+        outline=fill
+    )
+    rectangle.rectangle(
+        [
+            (upper_left_point[0] + corner_radius, upper_left_point[1]),
+            (bottom_right_point[0] - corner_radius, bottom_right_point[1])
+        ],
+        fill=fill,
+        outline=fill
+    )
+    rectangle.line([(upper_left_point[0] + corner_radius, upper_left_point[1]),
+                    (bottom_right_point[0] - corner_radius, upper_left_point[1])], fill=outline)
+    rectangle.line([(upper_left_point[0] + corner_radius, bottom_right_point[1]),
+                    (bottom_right_point[0] - corner_radius, bottom_right_point[1])], fill=outline)
+    rectangle.line([(upper_left_point[0], upper_left_point[1] + corner_radius),
+                    (upper_left_point[0], bottom_right_point[1] - corner_radius)], fill=outline)
+    rectangle.line([(bottom_right_point[0], upper_left_point[1] + corner_radius),
+                    (bottom_right_point[0], bottom_right_point[1] - corner_radius)], fill=outline)
+
+
 @some_sticker_bot.on_message(filters.command("start"))
 async def start_handler(c: Client, m: Message):
     await m.reply_text(
@@ -88,6 +146,7 @@ async def create_sticker_handler(c: Client, m: Message):
 
     img = Image.new("RGBA", (512, 512), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
+    draw.rounded_rectangle = rounded_rectangle
 
     text_lines = wrap(m.text if len(m.text) < 200 else f"{m.text[:200]}...", 25)
 
@@ -98,7 +157,20 @@ async def create_sticker_handler(c: Client, m: Message):
         font
     )
 
-    draw.rectangle(((0, 00), (img.size[0] - 10, img.size[1] - 10)), fill=(250, 250, 250, 40))
+    in_y = y
+    rec_y = y
+
+    for i, _ in enumerate(text_lines):
+        rec_y += line_heights[i]
+
+    await rounded_rectangle(draw, ((90, in_y), (512, rec_y + line_heights[-1])), 10, fill="#effcde")
+
+    f_user = m.from_user.first_name + " " + m.from_user.last_name if m.from_user.last_name else m.from_user.first_name
+    draw.text((100, y), f"{f_user}:", "#588237", font=font_who)
+    for i, line in enumerate(text_lines):
+        x = 100
+        y += line_heights[i]
+        draw.text((x, y), line, "#030303", font=font)
 
     try:
         user_profile_pic = await c.get_profile_photos(m.from_user.id)
@@ -110,16 +182,7 @@ async def create_sticker_handler(c: Client, m: Message):
     im = Image.open(photo).convert("RGBA")
     im.thumbnail((60, 60))
     await crop_to_circle(im)
-    img.paste(im, (30, y))
-
-    f_user = m.from_user.first_name + " " + m.from_user.last_name if m.from_user.last_name else m.from_user.first_name
-
-    draw.text((100, y), f"{f_user}:", (0, 0, 0), font=font_who)
-
-    for i, line in enumerate(text_lines):
-        x = 100
-        y += line_heights[i]
-        draw.text((x, y), line, (0, 0, 0), font=font)
+    img.paste(im, (20, in_y))
 
     sticker_file = f"{secrets.token_hex(2)}.webp"
 
