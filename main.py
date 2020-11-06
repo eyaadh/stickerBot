@@ -83,12 +83,13 @@ async def help_handler(c: Client, m: Message):
 async def create_sticker_handler(c: Client, m: Message):
     s = await m.reply_text("...")
 
-    font = ImageFont.truetype("TitilliumWeb-Bold.ttf", 34)
+    font = ImageFont.truetype("Segan-Light.ttf", 30)
+    font_who = ImageFont.truetype("TitilliumWeb-Bold.ttf", 24)
 
     img = Image.new("RGBA", (512, 512), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
 
-    text_lines = wrap(m.text, 30)
+    text_lines = wrap(m.text if len(m.text) < 200 else f"{m.text[:200]}...", 25)
 
     y, line_heights = await get_y_and_heights(
         text_lines,
@@ -97,19 +98,28 @@ async def create_sticker_handler(c: Client, m: Message):
         font
     )
 
-    draw.rectangle(((0, 00), (img.size[0], img.size[1])), fill=(176, 176, 176, 40))
+    draw.rectangle(((0, 00), (img.size[0] - 10, img.size[1] - 10)), fill=(250, 250, 250, 40))
 
-    user_profile_pic = await c.get_profile_photos(m.from_user.id)
-    photo = await c.download_media(user_profile_pic[0].file_id, file_ref=user_profile_pic[0].file_ref)
+    try:
+        user_profile_pic = await c.get_profile_photos(m.from_user.id)
+        photo = await c.download_media(user_profile_pic[0].file_id, file_ref=user_profile_pic[0].file_ref)
+    except Exception as e:
+        photo = "default.jpg"
+        logging.error(e)
+
     im = Image.open(photo).convert("RGBA")
     im.thumbnail((60, 60))
     await crop_to_circle(im)
     img.paste(im, (30, y))
 
+    f_user = m.from_user.first_name + " " + m.from_user.last_name if m.from_user.last_name else m.from_user.first_name
+
+    draw.text((100, y), f"{f_user}:", (0, 0, 0), font=font_who)
+
     for i, line in enumerate(text_lines):
         x = 100
-        draw.text((x, y), line, (0, 0, 0), font=font)
         y += line_heights[i]
+        draw.text((x, y), line, (0, 0, 0), font=font)
 
     sticker_file = f"{secrets.token_hex(2)}.webp"
 
@@ -123,7 +133,7 @@ async def create_sticker_handler(c: Client, m: Message):
         if os.path.isfile(sticker_file):
             os.remove(sticker_file)
 
-        if os.path.isfile(photo):
+        if os.path.isfile(photo) and (photo != "default.jpg"):
             os.remove(photo)
     except Exception as e:
         logging.error(e)
