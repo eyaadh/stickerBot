@@ -83,7 +83,7 @@ async def help_handler(c: Client, m: Message):
 async def create_sticker_handler(c: Client, m: Message):
     s = await m.reply_text("...")
 
-    font = ImageFont.truetype("TitilliumWeb-Regular.ttf", 34)
+    font = ImageFont.truetype("TitilliumWeb-Bold.ttf", 34)
 
     img = Image.new("RGBA", (512, 512), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
@@ -96,6 +96,8 @@ async def create_sticker_handler(c: Client, m: Message):
         10,
         font
     )
+
+    draw.rectangle(((0, 00), (img.size[0], img.size[1])), fill=(176, 176, 176, 40))
 
     user_profile_pic = await c.get_profile_photos(m.from_user.id)
     photo = await c.download_media(user_profile_pic[0].file_id, file_ref=user_profile_pic[0].file_ref)
