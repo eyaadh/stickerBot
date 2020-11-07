@@ -1,9 +1,10 @@
+import itertools
 import os
 import asyncio
 import secrets
 import logging
 import configparser
-from textwrap import wrap
+from textwrap import TextWrapper
 from pyrogram import Client, idle, filters
 from pyrogram.types import Message
 from PIL import Image, ImageDraw, ImageFont, ImageChops
@@ -137,18 +138,36 @@ async def help_handler(c: Client, m: Message):
     )
 
 
-@some_sticker_bot.on_message(filters.text & (~filters.command("start") | ~filters.command("help")))
+@some_sticker_bot.on_message(filters.text & filters.private & (~filters.command("start") | ~filters.command("help")))
 async def create_sticker_handler(c: Client, m: Message):
     s = await m.reply_text("...")
 
-    font = ImageFont.truetype("Segan-Light.ttf", 30)
+    if len(m.text) < 100:
+        body_font_size = 35
+        wrap_size = 30
+    elif len(m.text) < 200:
+        body_font_size = 30
+        wrap_size = 35
+    elif len(m.text) < 500:
+        body_font_size = 20
+        wrap_size = 40
+    elif len(m.text) < 1000:
+        body_font_size = 12
+        wrap_size = 80
+    else:
+        body_font_size = 8
+        wrap_size = 100
+
+    font = ImageFont.truetype("Segan-Light.ttf", body_font_size)
     font_who = ImageFont.truetype("TitilliumWeb-Bold.ttf", 24)
 
     img = Image.new("RGBA", (512, 512), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
     draw.rounded_rectangle = rounded_rectangle
 
-    text_lines = wrap(m.text if len(m.text) < 200 else f"{m.text[:200]}...", 25)
+    wrapper = TextWrapper(width=wrap_size, break_long_words=False, replace_whitespace=False)
+    lines_list = [wrapper.wrap(i) for i in m.text.split('\n') if i != '']
+    text_lines = list(itertools.chain.from_iterable(lines_list))
 
     y, line_heights = await get_y_and_heights(
         text_lines,
@@ -158,7 +177,7 @@ async def create_sticker_handler(c: Client, m: Message):
     )
 
     in_y = y
-    rec_y = y
+    rec_y = (y + line_heights[0]) if wrap_size >= 40 else y
 
     for i, _ in enumerate(text_lines):
         rec_y += line_heights[i]
@@ -167,6 +186,9 @@ async def create_sticker_handler(c: Client, m: Message):
 
     f_user = m.from_user.first_name + " " + m.from_user.last_name if m.from_user.last_name else m.from_user.first_name
     draw.text((100, y), f"{f_user}:", "#588237", font=font_who)
+
+    y = (y + (line_heights[0] * (20/100))) if wrap_size >= 40 else y
+
     for i, line in enumerate(text_lines):
         x = 100
         y += line_heights[i]
